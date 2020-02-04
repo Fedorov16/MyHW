@@ -35,7 +35,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // timer
 
-    let deadline = '2020-01-28';
+    let deadline = '2020-02-28';
 
     function getTime(endTime) {
         let t = Date.parse(endTime) - Date.parse(new Date()),
@@ -59,19 +59,19 @@ window.addEventListener('DOMContentLoaded', function () {
 
         function updateClock() {
             let t = getTime(endTime);
-                
-            function checkTime(a){
-                    if (a <= 9){
-                        return "0" + a;
-                    } else{
-                        return a;
-                    }
+
+            function checkTime(a) {
+                if (a <= 9) {
+                    return "0" + a;
+                } else {
+                    return a;
                 }
+            }
             hours.textContent = checkTime(t.hours);
             minutes.textContent = checkTime(t.minutes);
             seconds.textContent = checkTime(t.seconds);
-           
-            if (t.total <= 0){
+
+            if (t.total <= 0) {
                 clearInterval(timeInterval);
                 hours.textContent = "00";
                 minutes.textContent = "00";
@@ -82,23 +82,70 @@ window.addEventListener('DOMContentLoaded', function () {
 
     setClock('timer', deadline);
 
-// modal
-    function modalWindow(){
-    let more = document.querySelector('.more'),
-        overlay = document.querySelector('.overlay'),
-        popup = document.querySelector('.popup-close');
+    // modal
+    function modalWindow() {
+        let more = document.querySelector('.more'),
+            overlay = document.querySelector('.overlay'),
+            popup = document.querySelector('.popup-close');
 
-        more.addEventListener('click', function(){
+        more.addEventListener('click', function () {
             overlay.style.display = 'block';
             this.classList.add('more-splash');
             document.body.style.overflow = 'hidden';
         });
-        popup.addEventListener('click', function(){
+        popup.addEventListener('click', function () {
             overlay.style.display = 'none';
             more.classList.add('more-splash');
             document.body.style.overflow = '';
         });
     }
     modalWindow();
-    
+
+
+    let message = {
+        loading: 'Загрузка...',
+        success: 'Спасибо! Скоро мы с вами свяжемся!',
+        failure: 'Что-то пошло не так...'
+    };
+
+    let form = document.querySelector('.main-form'),
+        input = form.getElementsByTagName('input'),
+        statusMessage = document.createElement('div');
+
+        statusMessage.classList.add('status');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        form.appendChild(statusMessage);
+
+        let request = new XMLHttpRequest();
+        request.open('POST', 'server.php');
+        request.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+
+        let formData = new FormData(form);
+
+        let obj = {};
+        formData.forEach(function(value, key) {
+            obj[key] = value;
+        });
+        let json = JSON.stringify(obj);
+
+        request.send(json);
+
+        request.addEventListener('readystatechange', function() {
+            if (request.readyState < 4) {
+                statusMessage.innerHTML = message.loading;
+            } else if(request.readyState === 4 && request.status == 200) {
+                statusMessage.innerHTML = message.success;
+            } else {
+                statusMessage.innerHTML = message.failure;
+            }
+        });
+
+        for (let i = 0; i < input.length; i++) {
+            input[i].value = '';
+        }
+    });
+
+
 });
